@@ -1086,20 +1086,27 @@
             }
         }
 
-       async function uploadImage(file, path, progressId, loadingId) {
+      async function uploadImage(file, path, progressId, loadingId) {
     return new Promise((resolve, reject) => {
         const reader = new FileReader();
         
-        document.getElementById(loadingId).style.display = 'block';
+        // Показываем индикатор загрузки
+        const loadingEl = document.getElementById(loadingId);
+        if (loadingEl) loadingEl.style.display = 'block';
         
-        reader.onload = async function(e) {
-            const base64 = e.target.result; // Полный data:image/jpeg;base64,...
-            
-            document.getElementById(loadingId).style.display = 'none';
-            resolve(base64); // Возвращаем base64 как URL
+        reader.onload = function(e) {
+            const base64 = e.target.result;
+            if (loadingEl) loadingEl.style.display = 'none';
+            resolve(base64);
         };
         
-        reader.onerror = reject;
+        reader.onerror = function(error) {
+            if (loadingEl) loadingEl.style.display = 'none';
+            console.error('FileReader error:', error);
+            alert('Błąd odczytu pliku');
+            reject(error);
+        };
+        
         reader.readAsDataURL(file);
     });
 }
