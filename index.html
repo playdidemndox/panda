@@ -1,0 +1,1229 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PANDA STUDIO | Salon Urody Premium</title>
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-storage-compat.js"></script>
+    
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700&family=Montserrat:wght@300;400;500;600&display=swap');
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --black: #0a0a0a;
+            --white: #ffffff;
+            --cream: #f8f6f3;
+            --gold: #c9a961;
+            --soft-pink: #f5e6e0;
+            --bamboo: #7c9a6d;
+            --gray: #666;
+        }
+
+        body {
+            font-family: 'Montserrat', sans-serif;
+            background: var(--cream);
+            color: var(--black);
+            overflow-x: hidden;
+        }
+
+        /* Декорации */
+        .panda-decoration {
+            position: fixed;
+            top: 0;
+            height: 100vh;
+            width: 150px;
+            pointer-events: none;
+            z-index: 50;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-around;
+            align-items: center;
+            padding: 120px 0;
+        }
+
+        .panda-decoration.left {
+            left: 0;
+            background: linear-gradient(to right, rgba(124, 154, 109, 0.1), transparent);
+        }
+
+        .panda-decoration.right {
+            right: 0;
+            background: linear-gradient(to left, rgba(124, 154, 109, 0.1), transparent);
+        }
+
+        .panda-icon {
+            width: 80px;
+            height: 80px;
+            opacity: 0.4;
+            animation: gentle-float 8s ease-in-out infinite;
+        }
+
+        @keyframes gentle-float {
+            0%, 100% { transform: translateY(0) rotate(-5deg); }
+            50% { transform: translateY(-15px) rotate(5deg); }
+        }
+
+        /* Навигация */
+        nav {
+            position: fixed;
+            top: 0;
+            width: 100%;
+            padding: 20px 60px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            z-index: 1000;
+            background: rgba(248, 246, 243, 0.98);
+            backdrop-filter: blur(20px);
+            border-bottom: 1px solid rgba(201, 169, 97, 0.2);
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            text-decoration: none;
+        }
+
+        .logo-panda {
+            width: 50px;
+            height: 50px;
+            background: var(--black);
+            border-radius: 50%;
+            position: relative;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+        }
+
+        .logo-panda::before, .logo-panda::after {
+            content: '';
+            position: absolute;
+            width: 18px;
+            height: 18px;
+            background: var(--black);
+            border-radius: 50%;
+            top: -5px;
+        }
+
+        .logo-panda::before { left: 5px; transform: rotate(-15deg); }
+        .logo-panda::after { right: 5px; transform: rotate(15deg); }
+
+        .logo-panda-face {
+            position: absolute;
+            width: 35px;
+            height: 28px;
+            background: white;
+            border-radius: 50%;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+        }
+
+        .logo-panda-eyes {
+            position: absolute;
+            width: 8px;
+            height: 10px;
+            background: var(--black);
+            border-radius: 50%;
+            top: 8px;
+        }
+
+        .logo-panda-eyes.left { left: 8px; }
+        .logo-panda-eyes.right { right: 8px; }
+
+        .logo-panda-nose {
+            position: absolute;
+            width: 6px;
+            height: 4px;
+            background: var(--black);
+            border-radius: 50%;
+            bottom: 8px;
+            left: 50%;
+            transform: translateX(-50%);
+        }
+
+        .logo-text {
+            font-family: 'Playfair Display', serif;
+            font-size: 28px;
+            font-weight: 600;
+            color: var(--black);
+            letter-spacing: 3px;
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 40px;
+            list-style: none;
+            align-items: center;
+        }
+
+        .nav-links a {
+            text-decoration: none;
+            color: var(--black);
+            font-size: 13px;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            font-weight: 500;
+            transition: all 0.3s;
+            position: relative;
+        }
+
+        .nav-links a::after {
+            content: '';
+            position: absolute;
+            bottom: -5px;
+            left: 0;
+            width: 0;
+            height: 2px;
+            background: var(--gold);
+            transition: width 0.3s;
+        }
+
+        .nav-links a:hover::after {
+            width: 100%;
+        }
+
+        .admin-btn {
+            background: var(--black);
+            color: var(--white);
+            border: none;
+            padding: 12px 28px;
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            cursor: pointer;
+            transition: all 0.3s;
+            border-radius: 30px;
+        }
+
+        .admin-btn:hover {
+            background: var(--gold);
+            transform: translateY(-2px);
+        }
+
+        /* Герой */
+        .hero {
+            height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            background: linear-gradient(135deg, var(--cream) 0%, var(--soft-pink) 50%, var(--cream) 100%);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .hero-panda {
+            width: 120px;
+            height: 120px;
+            background: var(--black);
+            border-radius: 50%;
+            margin: 0 auto 30px;
+            position: relative;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            animation: panda-bounce 3s ease-in-out infinite;
+        }
+
+        @keyframes panda-bounce {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
+        }
+
+        .hero-panda::before, .hero-panda::after {
+            content: '';
+            position: absolute;
+            width: 35px;
+            height: 35px;
+            background: var(--black);
+            border-radius: 50%;
+            top: -10px;
+        }
+
+        .hero-panda::before { left: 10px; transform: rotate(-20deg); }
+        .hero-panda::after { right: 10px; transform: rotate(20deg); }
+
+        .hero-panda-face {
+            position: absolute;
+            width: 80px;
+            height: 65px;
+            background: white;
+            border-radius: 50%;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+        }
+
+        .hero-panda-eyes {
+            position: absolute;
+            width: 18px;
+            height: 22px;
+            background: var(--black);
+            border-radius: 50%;
+            top: 20px;
+        }
+
+        .hero-panda-eyes.left { left: 18px; }
+        .hero-panda-eyes.right { right: 18px; }
+
+        .hero-panda-nose {
+            position: absolute;
+            width: 12px;
+            height: 8px;
+            background: var(--black);
+            border-radius: 50%;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+        }
+
+        .hero h1 {
+            font-family: 'Playfair Display', serif;
+            font-size: 72px;
+            font-weight: 700;
+            letter-spacing: 8px;
+            margin-bottom: 20px;
+        }
+
+        .hero h1 span {
+            color: var(--bamboo);
+        }
+
+        .hero-subtitle {
+            font-size: 18px;
+            color: var(--gray);
+            letter-spacing: 4px;
+            text-transform: uppercase;
+            font-weight: 300;
+        }
+
+        .hero-line {
+            width: 80px;
+            height: 3px;
+            background: var(--gold);
+            margin: 30px auto 0;
+        }
+
+        /* Соцсети */
+        .social-bar {
+            position: fixed;
+            left: 40px;
+            top: 50%;
+            transform: translateY(-50%);
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            z-index: 999;
+            background: white;
+            padding: 25px 15px;
+            border-radius: 50px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.1);
+        }
+
+        .social-btn {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.3s;
+            border: none;
+        }
+
+        .social-btn:hover {
+            transform: scale(1.15) rotate(10deg);
+        }
+
+        .social-btn svg {
+            width: 24px;
+            height: 24px;
+            fill: white;
+        }
+
+        .booksy-btn { background: #00C853; }
+        .insta-btn {
+            background: linear-gradient(45deg, #f09433, #e6683c, #dc2743, #cc2366, #bc1888);
+        }
+
+        /* Разделы */
+        .services-nav {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            margin-bottom: 60px;
+            flex-wrap: wrap;
+        }
+
+        .service-tab {
+            padding: 15px 40px;
+            background: white;
+            border: 2px solid transparent;
+            border-radius: 50px;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-size: 14px;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            font-weight: 500;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.08);
+        }
+
+        .service-tab.active {
+            background: var(--black);
+            color: white;
+            border-color: var(--gold);
+        }
+
+        /* Портфолио */
+        .portfolio-section {
+            padding: 100px 60px;
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .section-header {
+            text-align: center;
+            margin-bottom: 60px;
+        }
+
+        .section-header h2 {
+            font-family: 'Playfair Display', serif;
+            font-size: 48px;
+            font-weight: 600;
+            margin-bottom: 15px;
+        }
+
+        .section-header p {
+            color: var(--gray);
+            font-size: 16px;
+            letter-spacing: 3px;
+            text-transform: uppercase;
+        }
+
+        .gallery {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 30px;
+        }
+
+        @media (max-width: 1024px) {
+            .gallery { grid-template-columns: repeat(2, 1fr); }
+        }
+
+        @media (max-width: 768px) {
+            .gallery { grid-template-columns: 1fr; }
+            .panda-decoration { display: none; }
+            .social-bar { left: 20px; }
+            nav { padding: 15px 20px; }
+            .hero h1 { font-size: 42px; }
+        }
+
+        .work-card {
+            background: white;
+            border-radius: 25px;
+            overflow: hidden;
+            box-shadow: 0 15px 50px rgba(0,0,0,0.08);
+            transition: all 0.4s;
+            position: relative;
+        }
+
+        .work-card:hover {
+            transform: translateY(-15px);
+            box-shadow: 0 30px 60px rgba(0,0,0,0.15);
+        }
+
+        .work-image {
+            width: 100%;
+            height: 380px;
+            object-fit: cover;
+            display: block;
+        }
+
+        .work-overlay {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background: var(--gold);
+            color: white;
+            padding: 12px 25px;
+            border-radius: 30px;
+            font-weight: 600;
+            font-size: 16px;
+            box-shadow: 0 5px 20px rgba(201, 169, 97, 0.4);
+        }
+
+        .work-info {
+            padding: 25px;
+            position: relative;
+            min-height: 120px;
+        }
+
+        .work-category {
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            color: var(--gold);
+            margin-bottom: 8px;
+            font-weight: 600;
+        }
+
+        .work-title {
+            font-size: 18px;
+            color: var(--black);
+            font-weight: 500;
+            margin-bottom: 15px;
+            padding-right: 80px;
+        }
+
+        /* Мастер в правом нижнем углу */
+        .master-info {
+            position: absolute;
+            bottom: 20px;
+            right: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            background: rgba(255,255,255,0.95);
+            padding: 8px 15px;
+            border-radius: 30px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+
+        .master-photo {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 2px solid var(--gold);
+        }
+
+        .master-name {
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--black);
+            max-width: 100px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .empty-state {
+            grid-column: 1 / -1;
+            text-align: center;
+            padding: 100px;
+            background: white;
+            border-radius: 25px;
+            border: 3px dashed var(--soft-pink);
+        }
+
+        /* О нас */
+        .about {
+            background: linear-gradient(135deg, white, var(--soft-pink));
+            padding: 120px 60px;
+        }
+
+        .about-content {
+            max-width: 900px;
+            margin: 0 auto;
+            text-align: center;
+        }
+
+        .about h2 {
+            font-family: 'Playfair Display', serif;
+            font-size: 48px;
+            margin-bottom: 40px;
+        }
+
+        .about-text {
+            font-size: 20px;
+            line-height: 2;
+            color: var(--gray);
+            font-weight: 300;
+        }
+
+        /* Контакты */
+        .contact {
+            padding: 120px 60px;
+            background: var(--black);
+            color: white;
+            text-align: center;
+            position: relative;
+        }
+
+        .contact h2 {
+            font-family: 'Playfair Display', serif;
+            font-size: 48px;
+            margin-bottom: 60px;
+            color: var(--gold);
+        }
+
+        .contact-grid {
+            display: flex;
+            justify-content: center;
+            gap: 60px;
+            flex-wrap: wrap;
+        }
+
+        .contact-card {
+            background: rgba(255,255,255,0.05);
+            padding: 50px;
+            border-radius: 25px;
+            border: 1px solid rgba(201, 169, 97, 0.3);
+            min-width: 300px;
+        }
+
+        .contact-card h3 {
+            font-size: 14px;
+            text-transform: uppercase;
+            letter-spacing: 3px;
+            color: var(--gold);
+            margin-bottom: 25px;
+        }
+
+        .contact-card p {
+            font-size: 18px;
+            line-height: 1.8;
+            font-weight: 300;
+        }
+
+        /* Футер */
+        footer {
+            background: var(--black);
+            color: var(--gray);
+            text-align: center;
+            padding: 40px;
+            border-top: 1px solid rgba(201, 169, 97, 0.2);
+            font-size: 13px;
+            letter-spacing: 2px;
+        }
+
+        /* Модалки */
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.8);
+            z-index: 2000;
+            justify-content: center;
+            align-items: center;
+            backdrop-filter: blur(10px);
+        }
+
+        .login-box {
+            background: white;
+            padding: 60px;
+            border-radius: 30px;
+            text-align: center;
+            max-width: 450px;
+            width: 90%;
+        }
+
+        .login-box h3 {
+            font-family: 'Playfair Display', serif;
+            font-size: 32px;
+            margin-bottom: 30px;
+        }
+
+        .login-box input {
+            width: 100%;
+            padding: 18px 25px;
+            margin-bottom: 25px;
+            border: 2px solid #eee;
+            border-radius: 15px;
+            font-size: 16px;
+        }
+
+        .admin-panel {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: var(--cream);
+            z-index: 3000;
+            overflow-y: auto;
+        }
+
+        .admin-header {
+            background: var(--black);
+            color: white;
+            padding: 30px 60px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .admin-content {
+            padding: 60px;
+            max-width: 1000px;
+            margin: 0 auto;
+        }
+
+        .admin-form {
+            background: white;
+            padding: 50px;
+            border-radius: 25px;
+            margin-bottom: 40px;
+            box-shadow: 0 15px 50px rgba(0,0,0,0.08);
+        }
+
+        .form-group {
+            margin-bottom: 30px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 12px;
+            font-size: 13px;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            color: var(--gray);
+            font-weight: 600;
+        }
+
+        .category-select, .form-group input, .form-group textarea {
+            width: 100%;
+            padding: 18px;
+            border: 2px solid #eee;
+            border-radius: 15px;
+            font-size: 16px;
+            outline: none;
+        }
+
+        .upload-area {
+            border: 3px dashed var(--bamboo);
+            border-radius: 20px;
+            padding: 40px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s;
+            background: rgba(124, 154, 109, 0.1);
+            position: relative;
+        }
+
+        .upload-area:hover {
+            background: rgba(124, 154, 109, 0.2);
+        }
+
+        .upload-area input {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            opacity: 0;
+            cursor: pointer;
+        }
+
+        .preview-img {
+            max-width: 200px;
+            max-height: 200px;
+            margin-top: 20px;
+            border-radius: 15px;
+            display: none;
+        }
+
+        .master-preview {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 3px solid var(--gold);
+            display: none;
+            margin-top: 10px;
+        }
+
+        .loading {
+            display: none;
+            color: var(--bamboo);
+            font-weight: 600;
+            margin-top: 10px;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 10px;
+            background: #eee;
+            border-radius: 5px;
+            margin-top: 15px;
+            overflow: hidden;
+            display: none;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: var(--bamboo);
+            width: 0%;
+            transition: width 0.3s;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Декорации -->
+    <div class="panda-decoration left">
+        <svg class="panda-icon" viewBox="0 0 100 100">
+            <circle cx="50" cy="55" r="35" fill="#0a0a0a"/>
+            <ellipse cx="25" cy="30" rx="15" ry="20" fill="#0a0a0a"/>
+            <ellipse cx="75" cy="30" rx="15" ry="20" fill="#0a0a0a"/>
+            <ellipse cx="50" cy="60" rx="25" ry="20" fill="white"/>
+            <ellipse cx="40" cy="55" rx="8" ry="10" fill="#0a0a0a"/>
+            <ellipse cx="60" cy="55" rx="8" ry="10" fill="#0a0a0a"/>
+            <ellipse cx="50" cy="68" rx="6" ry="4" fill="#0a0a0a"/>
+        </svg>
+    </div>
+
+    <div class="panda-decoration right">
+        <svg class="panda-icon" viewBox="0 0 100 100">
+            <rect x="30" y="20" width="8" height="60" rx="4" fill="#7c9a6d"/>
+            <rect x="45" y="10" width="10" height="80" rx="5" fill="#a8c497"/>
+        </svg>
+    </div>
+
+    <!-- Навигация -->
+    <nav>
+        <a href="#" class="logo">
+            <div class="logo-panda">
+                <div class="logo-panda-face">
+                    <div class="logo-panda-eyes left"></div>
+                    <div class="logo-panda-eyes right"></div>
+                    <div class="logo-panda-nose"></div>
+                </div>
+            </div>
+            <span class="logo-text">PANDA STUDIO</span>
+        </a>
+        <ul class="nav-links">
+            <li><a href="#portfolio">Portfolio</a></li>
+            <li><a href="#about">O nas</a></li>
+            <li><a href="#contact">Kontakt</a></li>
+            <li><button class="admin-btn" onclick="openLogin()">Zaloguj się</button></li>
+        </ul>
+    </nav>
+
+    <!-- Соцсети -->
+    <div class="social-bar">
+        <div class="social-btn booksy-btn" onclick="window.open('https://pandabeautystudio.booksy.com/a/', '_blank')">
+            <svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 17.93c-3.95-.49-7-3.85-7-7.93 0-.62.08-1.21.21-1.79L9 15v1c0 1.1.9 2 2 2v1.93zm6.9-2.54c-.26-.81-1-1.39-1.9-1.39h-1v-3c0-.55-.45-1-1-1H8v-2h2c.55 0 1-.45 1-1V7h2c1.1 0 2-.9 2-2v-.41c2.93 1.19 5 4.06 5 7.41 0 2.08-.8 3.97-2.1 5.39z"/></svg>
+        </div>
+        <div class="social-btn insta-btn" onclick="window.open('https://www.instagram.com/panda_studio_ua?igsh=MW1vdzh3ZXVxNmxwYg==', '_blank')">
+            <svg viewBox="0 0 24 24"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"/></svg>
+        </div>
+    </div>
+
+    <!-- Герой -->
+    <section class="hero">
+        <div class="hero-content">
+            <div class="hero-panda">
+                <div class="hero-panda-face">
+                    <div class="hero-panda-eyes left"></div>
+                    <div class="hero-panda-eyes right"></div>
+                    <div class="hero-panda-nose"></div>
+                </div>
+            </div>
+            <h1>PANDA <span>STUDIO</span></h1>
+            <p class="hero-subtitle">Salon Urody Premium</p>
+            <div class="hero-line"></div>
+        </div>
+    </section>
+
+    <!-- Портфолио -->
+    <section class="portfolio-section" id="portfolio">
+        <div class="section-header">
+            <h2>Nasze Prace</h2>
+            <p>Portfolio</p>
+        </div>
+
+        <div class="services-nav">
+            <button class="service-tab active" onclick="filterWorks('all')">Wszystkie</button>
+            <button class="service-tab" onclick="filterWorks('nails')">Paznokcie</button>
+            <button class="service-tab" onclick="filterWorks('brows')">Brwi</button>
+            <button class="service-tab" onclick="filterWorks('lashes')">Rzęsy</button>
+        </div>
+
+        <div class="gallery" id="gallery">
+            <div class="empty-state">
+                <h3>Ładowanie...</h3>
+                <p>Proszę czekać</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- О нас -->
+    <section class="about" id="about">
+        <div class="about-content">
+            <h2>O Nas</h2>
+            <p class="about-text">
+                PANDA STUDIO to miejsce, gdzie piękno spotyka się z profesjonalizmem. 
+                Tworzymy niepowtarzalne stylizacje paznokci, brwi i rzęs.
+            </p>
+        </div>
+    </section>
+
+    <!-- Контакты -->
+    <section class="contact" id="contact">
+        <h2>Kontakt</h2>
+        <div class="contact-grid">
+            <div class="contact-card">
+                <h3>Godziny Otwarcia</h3>
+                <p>Poniedziałek - Piątek<br>09:00 - 19:00<br><br>Sobota<br>09:00 - 14:00</p>
+            </div>
+            <div class="contact-card">
+                <h3>Rezerwacja</h3>
+                <p>Rezerwuj przez Booksy<br>lub Instagram</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Футер -->
+    <footer>
+        <p>&copy; 2024 PANDA STUDIO. Wszelkie prawa zastrzeżone.</p>
+    </footer>
+
+    <!-- Логин -->
+    <div class="modal-overlay" id="loginModal">
+        <div class="login-box">
+            <h3>Panel Administratora</h3>
+            <input type="password" id="adminPass" placeholder="Wprowadź hasło">
+            <button class="admin-btn" onclick="login()" style="width: 100%;">Zaloguj się</button>
+        </div>
+    </div>
+
+    <!-- Админ панель -->
+    <div class="admin-panel" id="adminPanel">
+        <div class="admin-header">
+            <h2 style="font-family: 'Playfair Display', serif;">PANDA STUDIO - Panel</h2>
+            <button class="admin-btn" onclick="logout()">Wyloguj</button>
+        </div>
+        <div class="admin-content">
+            <div class="admin-form">
+                <h3 style="font-family: 'Playfair Display', serif; font-size: 28px; margin-bottom: 30px;">Dodaj nową pracę</h3>
+                
+                <div class="form-group">
+                    <label>Kategoria</label>
+                    <select class="category-select" id="workCategory">
+                        <option value="nails">Paznokcie</option>
+                        <option value="brows">Brwi</option>
+                        <option value="lashes">Rzęsy</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label>Zdjęcie pracy</label>
+                    <div class="upload-area" id="workUploadArea">
+                        <input type="file" id="workImage" accept="image/*" onchange="previewWorkImage(this)">
+                        <p style="font-size: 18px; color: var(--gray);">📷 Kliknij lub przeciągnij zdjęcie pracy</p>
+                        <p style="font-size: 13px; color: #999; margin-top: 10px;">Max 5MB</p>
+                        <img id="workPreview" class="preview-img">
+                    </div>
+                    <div class="progress-bar" id="workProgress">
+                        <div class="progress-fill" id="workProgressFill"></div>
+                    </div>
+                    <p class="loading" id="workLoading">Ładowanie zdjęcia...</p>
+                </div>
+
+                <div class="form-group">
+                    <label>Zdjęcie mistrza</label>
+                    <div class="upload-area" id="masterUploadArea" style="padding: 30px;">
+                        <input type="file" id="masterImage" accept="image/*" onchange="previewMasterImage(this)">
+                        <p style="font-size: 16px; color: var(--gray);">👤 Kliknij, aby dodać zdjęcie mistrza</p>
+                        <img id="masterPreview" class="master-preview">
+                    </div>
+                    <div class="progress-bar" id="masterProgress">
+                        <div class="progress-fill" id="masterProgressFill"></div>
+                    </div>
+                    <p class="loading" id="masterLoading">Ładowanie zdjęcia...</p>
+                </div>
+
+                <div class="form-group">
+                    <label>Imię mistrza</label>
+                    <input type="text" id="masterName" placeholder="Np. Anna">
+                </div>
+
+                <div class="form-group">
+                    <label>Cena (PLN)</label>
+                    <input type="number" id="workPrice" placeholder="Np. 150">
+                </div>
+
+                <div class="form-group">
+                    <label>Opis pracy</label>
+                    <textarea id="workDesc" rows="3" placeholder="Np. Manicure hybrydowy z zdobieniem"></textarea>
+                </div>
+
+                <button class="admin-btn" onclick="addWork()" style="width: 100%; padding: 20px; font-size: 16px;">
+                    Dodaj pracę
+                </button>
+            </div>
+
+            <div class="admin-form">
+                <h3 style="font-family: 'Playfair Display', serif; font-size: 24px; margin-bottom: 30px;">Zarządzanie pracami</h3>
+                <div id="adminWorks"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // ============================================
+        // КОНФИГУРАЦИЯ FIREBASE - ВСТАВЬ СВОИ ДАННЫЕ!
+        // ============================================
+        const firebaseConfig = {
+            apiKey: "AIzaSyDNVQOhPyFCHanJPf7bvU8_rS2usfFtxB0",
+            authDomain: "panda-studio-25e7c.firebaseapp.com",
+            databaseURL: "https://panda-studio-25e7c-default-rtdb.europe-west1.firebasedatabase.app",
+            projectId: "panda-studio-25e7c",
+            storageBucket: "panda-studio-25e7c.appspot.com",
+            messagingSenderId: "161400686464",
+            appId: "1:161400686464:web:2afea2e82eee934dc1a365"
+        };
+
+        // Инициализация Firebase
+        firebase.initializeApp(firebaseConfig);
+        const database = firebase.database();
+        const storage = firebase.storage();
+        const worksRef = database.ref('works');
+
+        let currentFilter = 'all';
+        const ADMIN_PASSWORD = 'panda2024';
+        let workImageFile = null;
+        let masterImageFile = null;
+        let workImageUrl = '';
+        let masterImageUrl = '';
+
+        // Загрузка работ при старте
+        worksRef.on('value', (snapshot) => {
+            const works = snapshot.val() || {};
+            renderGallery(works);
+            renderAdmin(works);
+        });
+
+        function filterWorks(category) {
+            currentFilter = category;
+            document.querySelectorAll('.service-tab').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            event.target.classList.add('active');
+            
+            worksRef.once('value', (snapshot) => {
+                renderGallery(snapshot.val() || {});
+            });
+        }
+
+        function renderGallery(works) {
+            const gallery = document.getElementById('gallery');
+            const worksArray = Object.entries(works).map(([id, work]) => ({id, ...work}));
+            
+            let filteredWorks = currentFilter === 'all' 
+                ? worksArray 
+                : worksArray.filter(w => w.category === currentFilter);
+            
+            if (filteredWorks.length === 0) {
+                gallery.innerHTML = `
+                    <div class="empty-state">
+                        <h3>Brak prac w tej kategorii</h3>
+                        <p>${currentFilter === 'all' ? 'Zaloguj się jako administrator, aby dodać zdjęcia' : 'Wybierz inną kategorię'}</p>
+                    </div>
+                `;
+                return;
+            }
+
+            const categoryNames = {
+                'nails': 'Paznokcie',
+                'brows': 'Brwi',
+                'lashes': 'Rzęsy'
+            };
+
+            gallery.innerHTML = filteredWorks.map(work => `
+                <div class="work-card">
+                    <div class="work-overlay">${work.price} zł</div>
+                    <img src="${work.workImage}" class="work-image" alt="${work.description}" loading="lazy">
+                    <div class="work-info">
+                        <div class="work-category">${categoryNames[work.category]}</div>
+                        <div class="work-title">${work.description}</div>
+                        <div class="master-info">
+                            <img src="${work.masterImage}" class="master-photo" alt="${work.masterName}">
+                            <span class="master-name">${work.masterName}</span>
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function previewWorkImage(input) {
+            const file = input.files[0];
+            if (file) {
+                workImageFile = file;
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    document.getElementById('workPreview').src = e.target.result;
+                    document.getElementById('workPreview').style.display = 'block';
+                };
+                reader.readAsDataURL(file);
+            }
+        }
+
+        function previewMasterImage(input) {
+            const file = input.files[0];
+            if (file) {
+                masterImageFile = file;
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    document.getElementById('masterPreview').src = e.target.result;
+                    document.getElementById('masterPreview').style.display = 'block';
+                };
+                reader.readAsDataURL(file);
+            }
+        }
+
+        async function uploadImage(file, path, progressId, loadingId) {
+            return new Promise((resolve, reject) => {
+                const storageRef = storage.ref(`${path}/${Date.now()}_${file.name}`);
+                const uploadTask = storageRef.put(file);
+
+                document.getElementById(progressId).style.display = 'block';
+                document.getElementById(loadingId).style.display = 'block';
+
+                uploadTask.on('state_changed', 
+                    (snapshot) => {
+                        const progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
+                        document.getElementById(progressId.replace('Progress', 'ProgressFill')).style.width = progress + '%';
+                    },
+                    (error) => {
+                        document.getElementById(loadingId).style.display = 'none';
+                        reject(error);
+                    },
+                    async () => {
+                        const url = await uploadTask.snapshot.ref.getDownloadURL();
+                        document.getElementById(progressId).style.display = 'none';
+                        document.getElementById(loadingId).style.display = 'none';
+                        resolve(url);
+                    }
+                );
+            });
+        }
+
+        async function addWork() {
+            const category = document.getElementById('workCategory').value;
+            const price = document.getElementById('workPrice').value;
+            const desc = document.getElementById('workDesc').value;
+            const masterName = document.getElementById('masterName').value;
+
+            if (!workImageFile || !masterImageFile || !price || !desc || !masterName) {
+                alert('Wypełnij wszystkie pola i dodaj oba zdjęcia!');
+                return;
+            }
+
+            try {
+                // Загрузка фото работы
+                workImageUrl = await uploadImage(workImageFile, 'works', 'workProgress', 'workLoading');
+                
+                // Загрузка фото мастера
+                masterImageUrl = await uploadImage(masterImageFile, 'masters', 'masterProgress', 'masterLoading');
+
+                // Сохранение в базу данных
+                const newWorkRef = worksRef.push();
+                await newWorkRef.set({
+                    category: category,
+                    price: price,
+                    description: desc,
+                    masterName: masterName,
+                    workImage: workImageUrl,
+                    masterImage: masterImageUrl,
+                    createdAt: Date.now()
+                });
+
+                // Очистка формы
+                document.getElementById('workImage').value = '';
+                document.getElementById('masterImage').value = '';
+                document.getElementById('workPrice').value = '';
+                document.getElementById('workDesc').value = '';
+                document.getElementById('masterName').value = '';
+                document.getElementById('workPreview').style.display = 'none';
+                document.getElementById('masterPreview').style.display = 'none';
+                workImageFile = null;
+                masterImageFile = null;
+
+                alert('Praca dodana! ✅');
+            } catch (error) {
+                alert('Błąd: ' + error.message);
+            }
+        }
+
+        function openLogin() {
+            document.getElementById('loginModal').style.display = 'flex';
+        }
+
+        function closeLogin() {
+            document.getElementById('loginModal').style.display = 'none';
+            document.getElementById('adminPass').value = '';
+        }
+
+        function login() {
+            if (document.getElementById('adminPass').value === ADMIN_PASSWORD) {
+                closeLogin();
+                document.getElementById('adminPanel').style.display = 'block';
+            } else {
+                alert('Nieprawidłowe hasło!');
+            }
+        }
+
+        function logout() {
+            document.getElementById('adminPanel').style.display = 'none';
+        }
+
+        async function deleteWork(workId) {
+            if (confirm('Usunąć tę pracę?')) {
+                try {
+                    await worksRef.child(workId).remove();
+                    alert('Praca usunięta!');
+                } catch (error) {
+                    alert('Błąd: ' + error.message);
+                }
+            }
+        }
+
+        function renderAdmin(works) {
+            const container = document.getElementById('adminWorks');
+            const worksArray = Object.entries(works).map(([id, work]) => ({id, ...work}));
+            const categoryNames = {
+                'nails': 'Paznokcie',
+                'brows': 'Brwi',
+                'lashes': 'Rzęsy'
+            };
+            
+            if (worksArray.length === 0) {
+                container.innerHTML = '<p style="text-align: center; color: #999; padding: 40px;">Brak dodanych prac</p>';
+                return;
+            }
+
+            container.innerHTML = worksArray.map(work => `
+                <div style="display: flex; align-items: center; padding: 20px; border-bottom: 1px solid #eee; gap: 20px;">
+                    <img src="${work.workImage}" style="width: 80px; height: 80px; object-fit: cover; border-radius: 15px;">
+                    <div style="flex: 1;">
+                        <p style="font-weight: 600; margin-bottom: 5px;">${work.description}</p>
+                        <p style="color: var(--gold); font-size: 18px; font-weight: 600;">${work.price} zł</p>
+                        <p style="color: #999; font-size: 13px;">${categoryNames[work.category]} | ${work.masterName}</p>
+                    </div>
+                    <button onclick="deleteWork('${work.id}')" style="background: #ff4444; color: white; border: none; padding: 12px 25px; border-radius: 25px; cursor: pointer;">Usuń</button>
+                </div>
+            `).join('');
+        }
+
+        // Закрытие модалки
+        document.getElementById('loginModal').onclick = function(e) {
+            if (e.target === this) closeLogin();
+        };
+    </script>
+</body>
+</html>
