@@ -1086,37 +1086,21 @@
             }
         }
 
-        async function uploadImage(file, path, progressId, loadingId) {
+       async function uploadImage(file, path, progressId, loadingId) {
     return new Promise((resolve, reject) => {
-        const storageRef = firebase.storage().ref(`${path}/${Date.now()}_${file.name}`);
-        const uploadTask = storageRef.put(file);
-
-        document.getElementById(progressId).style.display = 'block';
+        const reader = new FileReader();
+        
         document.getElementById(loadingId).style.display = 'block';
-
-        uploadTask.on('state_changed', 
-            (snapshot) => {
-                const progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
-                document.getElementById(progressId.replace('Progress', 'ProgressFill')).style.width = progress + '%';
-            },
-            (error) => {
-                document.getElementById(loadingId).style.display = 'none';
-                console.error('Upload error:', error);
-                alert('Błąd ładowania: ' + error.message);
-                reject(error);
-            },
-            async () => {
-                try {
-                    const url = await uploadTask.snapshot.ref.getDownloadURL();
-                    document.getElementById(progressId).style.display = 'none';
-                    document.getElementById(loadingId).style.display = 'none';
-                    resolve(url);
-                } catch (err) {
-                    console.error('Get URL error:', err);
-                    reject(err);
-                }
-            }
-        );
+        
+        reader.onload = async function(e) {
+            const base64 = e.target.result; // Полный data:image/jpeg;base64,...
+            
+            document.getElementById(loadingId).style.display = 'none';
+            resolve(base64); // Возвращаем base64 как URL
+        };
+        
+        reader.onerror = reject;
+        reader.readAsDataURL(file);
     });
 }
 
